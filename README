@@ -1,0 +1,21 @@
+What it Does:
+1. Reads the label strings (key/value pair) for different languages from Google Spreadsheets
+
+2. The values should be in the corresponding column as,
+     key      values      values-es       values-fr      ...
+
+3. Creates the strings.xml for all the given languages and place them in corresponding folders
+
+
+
+How to use?
+1. Unzip the labelgenerator.zip file
+2. In linux change permission for generatelabels.sh :  chmod 755 generatelabels.sh
+3. Double click the .sh or .bat file based on the OS
+
+
+ChangeLog 
+
+Version - 1.0.0 (Dec 28' 2014)
+Initial Version
+
