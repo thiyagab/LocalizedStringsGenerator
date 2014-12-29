@@ -95,11 +95,7 @@ public class LabelGenerator {
 
 	
 
-	static StringBuffer stringsXML = new StringBuffer();
-	static StringBuffer configjson = new StringBuffer();
-	static StringBuffer stringsplist = new StringBuffer();
-	static StringBuffer constants = new StringBuffer();
-	static StringBuffer labelconfig = new StringBuffer();
+	
 	static StringBuffer duplicateKeys = new StringBuffer();
 	ArrayList<String> keyList = new ArrayList<String>();
 	static final String QUOTE = "\"";
@@ -114,8 +110,14 @@ public class LabelGenerator {
 	 * @param entry
 	 *            the list entry to print
 	 */
-	boolean addedNewLine = false;
-	static HashMap<String, StringBuffer> valuesMap = new HashMap<String, StringBuffer>();
+	static HashMap<String, StringBuffer> androidStringsMap = new HashMap<String, StringBuffer>();
+	static HashMap<String, StringBuffer> iOSStringsMap = new HashMap<String, StringBuffer>();
+	
+	/**
+	 * Process each row from the spreadsheet
+	 * and populate the androidStringMap and iOSStringsMap
+	 * @param entry
+	 */
 
 	public void processEachEntry(ListEntry entry) {
 
@@ -152,62 +154,62 @@ public class LabelGenerator {
 			
 			if (key.length() != 0 && value != null) {
 				value = changeSpecial(value);
-//				appendEachEntry(key,value);
 				appendEachEntry(key,valueEntry);
-				addedNewLine = false;
 			}
-		} else if (!addedNewLine) {
-			addedNewLine = true;
-//			stringsXML.append("\n");
-//			configjson.append("\n");
-//			stringsplist.append("\n");
-//			constants.append("\n");
-//			labelconfig.append("\n");
 		}
 	}
 	
-	
+	/*
+	 * Get the string value for every language and fill the hashmap with langcode and
+	 * the string value
+	 */
 	private void appendEachEntry(String key, HashMap<String, String> valueEntry) {
 				
 		    Set<String> keySet = valueEntry.keySet();
 		    for (String langCode : keySet) {
 				String value = valueEntry.get(langCode);
-				StringBuffer stringsXML=valuesMap.get(langCode);
+				processAndroidStrings(langCode,key,value);
+				processiOSStrings(langCode,key,value);
 				
-				if(stringsXML==null){
-					stringsXML= new StringBuffer();
-					stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
-							"<resources>\n");
-				}
-				
-				stringsXML.append("<string name=\"").append(key)
-				.append("\">").append(value).append("</string>\n");
-				
-				valuesMap.put(langCode, stringsXML);
 			}
 	}
+	
+	
+	private void processiOSStrings(String langCode, String key, String value) {
+		StringBuffer localizableStrings=iOSStringsMap.get(langCode);
+		
+		if(localizableStrings==null){
+			localizableStrings= new StringBuffer();
+		}
+		
+		localizableStrings.append("\"").append(key)
+		.append("\" = ").append("\"").append(value).append("\";\n");
+		
+		iOSStringsMap.put(langCode, localizableStrings);
+	}
 
-	private void appendEachEntry(String key, String value) {
-		labelconfig.append(key).append(" = ").append(value).append("\n");
+	
+	
+	private void processAndroidStrings(String langCode, String key, String value) {
+		StringBuffer stringsXML=androidStringsMap.get(langCode);
+		
+		if(stringsXML==null){
+			stringsXML= new StringBuffer();
+			stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
+					"<resources>\n");
+		}
 		
 		stringsXML.append("<string name=\"").append(key)
 		.append("\">").append(value).append("</string>\n");
 		
-		stringsplist.append(QUOTE).append(key).append(QUOTE)
-		.append("=").append(QUOTE).append(value)
-		.append(QUOTE).append(";\n");
+		androidStringsMap.put(langCode, stringsXML);
 		
-		configjson.append("{\"key\":\"").append(key)
-		.append("\",\"value\":\"").append(value)
-		.append("\"},\n");
-
-		constants.append("String ").append(key).append("=")
-		.append(QUOTE).append(key).append(QUOTE).append(";\n");		
 	}
+
+	
 
 	private String changeSpecial(String value) {
 		for (String key : stringsXMLMap.keySet()) {
-			
 			value=value.replace(key, stringsXMLMap.get(key));
 		}
 		
@@ -269,7 +271,6 @@ public class LabelGenerator {
 	 */
 	public void processAllEntries() throws IOException, ServiceException {
 		ListFeed feed = service.getFeed(listFeedUrl, ListFeed.class);
-		prefixFiles();
 		
 		System.out.println("\nIterating through "+feed.getTotalResults()+" labels...");
 		
@@ -277,27 +278,12 @@ public class LabelGenerator {
 			
 			processEachEntry(entry);
 		}
-		suffixFiles();
 		
 		
 		System.out.println("\nProcessed all data...");
 
 	}
 
-	
-
-	private void suffixFiles() {
-		constants.append("\n\n}");
-		configjson.insert(0, "[\n").deleteCharAt(configjson.length()-1).append("\n]");
-	}
-
-	private void prefixFiles() {
-		constants
-		.append("package ").append(CONSTANTS_PACKAGE).append(";\n\npublic interface LabelConfig {\n\n");
-stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
-"<resources>\n");
-		
-	}
 
 	/**
 	 * Starts up the demo and prompts for commands.
@@ -331,8 +317,6 @@ stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
 		
 		}
 
-		// while (executeCommand(reader)) {
-		// }
 	}
 
 	/**
@@ -348,12 +332,12 @@ stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
 	public static void main(String[] args) throws AuthenticationException,
 			IOException {
 		loadConfig();
-		LabelGenerator demo = new LabelGenerator(new SpreadsheetService(
+		LabelGenerator generator = new LabelGenerator(new SpreadsheetService(
 				"Label Generator"), System.out);
 
-		demo.run(USERNAME, PASSWORD);
-//		writeToFile();
+		generator.run(USERNAME, PASSWORD);
 		writeStringsXML();
+		writeLocalizedStrings();
 		System.out.println("\nLabel Generated successfully. Press any key to close this window");
 		getUserInput();
 		System.exit(0);
@@ -365,43 +349,42 @@ stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
 	static String SPREADSHEET_NAME = "Label Config";
 	static String STRINGS_XML_PATH = "strings.xml";
 	static String STRINGS_PLIST_PATH = "Localizable.strings";
-	static String CONSTANTS_PATH = "LabelConfig.java";
-	static String CONFIG_JSON_PATH = "config.json";
-	static String LABEL_PROPS_PATH = "labelconfig.properties";
 	static String KEY_COLUMN_NAME = "key";
 	static String VALUE_COLUMN_NAME = "values";
-	static String DYNAMIC_COLUMN_NAME = "isdynamic";
-	static String CONSTANTS_PACKAGE="com.bt.labels";
+	
 	
 	
 	public static void writeStringsXML() throws IOException {
-		Set<String> langCodeSet=valuesMap.keySet();
+		Set<String> langCodeSet=androidStringsMap.keySet();
 		for (String langCode : langCodeSet) {
-			StringBuffer stringsXML = valuesMap.get(langCode);
+			StringBuffer stringsXML = androidStringsMap.get(langCode);
 			stringsXML.append("\n</resources>");
 			String dirName = "values"+(langCode.isEmpty()?"":"-"+langCode);
 			writeToFile(dirName+File.separator+STRINGS_XML_PATH, stringsXML.toString());
 		}
-	}
-
-	public static void writeToFile() throws IOException {
-		stringsXML.append("\n\n</resources>");
-		writeToFile(STRINGS_XML_PATH, stringsXML.toString());
-		System.out.println("\nProcessed file " + STRINGS_XML_PATH);
-		writeToFile(CONFIG_JSON_PATH, configjson.toString());
-		System.out.println("\nProcessed file " + CONFIG_JSON_PATH);
-		writeToFile(STRINGS_PLIST_PATH, stringsplist.toString());
-		System.out.println("\nProcessed file " + STRINGS_PLIST_PATH);
-		writeToFile(CONSTANTS_PATH, constants.toString());
-		System.out.println("\nProcessed file " + CONSTANTS_PATH);
-		writeToFile(LABEL_PROPS_PATH, labelconfig.toString());
-		System.out.println("\nProcessed file " + LABEL_PROPS_PATH);
-
+		
 		if (duplicateKeys.length() > 0) {
 			System.out.println("\nWARNING  DUPLICATE KEYS FOUND :\n"
 					+ duplicateKeys);
 		}
 	}
+	
+	public static void writeLocalizedStrings() throws IOException {
+		Set<String> langCodeSet=iOSStringsMap.keySet();
+		for (String langCode : langCodeSet) {
+			StringBuffer localizedStrings = iOSStringsMap.get(langCode);
+			if(langCode.isEmpty()) langCode="en";
+			String dirName = langCode+".lproj";
+			writeToFile(dirName+File.separator+STRINGS_PLIST_PATH, localizedStrings.toString());
+		}
+		
+		if (duplicateKeys.length() > 0) {
+			System.out.println("\nWARNING  DUPLICATE KEYS FOUND :\n"
+					+ duplicateKeys);
+		}
+	}
+
+	
 
 	public static void writeToFile(String filePath, String contents)
 			throws IOException {
@@ -438,14 +421,10 @@ stringsXML.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
 		PASSWORD = p.getProperty("PASSWORD");
 		SPREADSHEET_NAME = p.getProperty("SPREADSHEET_NAME");
 		STRINGS_XML_PATH = p.getProperty("STRINGS_XML_PATH");
-		STRINGS_PLIST_PATH = p.getProperty("STRINGS_PLIST_PATH");
-		CONSTANTS_PATH = p.getProperty("CONSTANTS_PATH");
-		CONFIG_JSON_PATH = p.getProperty("CONFIG_JSON_PATH");
-		LABEL_PROPS_PATH = p.getProperty("LABEL_PROPS_PATH");
 		KEY_COLUMN_NAME = p.getProperty("KEY_COLUMN_NAME");
 		VALUE_COLUMN_NAME = p.getProperty("VALUE_COLUMN_NAME");
-		DYNAMIC_COLUMN_NAME = p.getProperty("DYNAMIC_COLUMN_NAME");
-		CONSTANTS_PACKAGE= p.getProperty("CONSTANTS_PACKAGE");
+		STRINGS_PLIST_PATH = p.getProperty("STRINGS_PLIST_PATH");
+		
 		if(USERNAME==null || USERNAME.isEmpty() || PASSWORD==null || PASSWORD.isEmpty()){
 			System.out.println("USERNAME or PASSWORD cannot be empty. Check the config.properties file");
 			getUserInput();
