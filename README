@@ -1,19 +1,19 @@
 
-What it Does:
-1. Reads the label strings (key/value pair) for different languages from a Google Spreadsheet
 
-2. Create a Google spreadsheet (e.g. Label Config) and enter all the keys and values
+Reads the label strings (key/value pair) for different languages from a Google Spreadsheet and generate corresponding strings.xml
 
-3. The values should be in the corresponding column as,
+1. Create a Google spreadsheet (e.g. Label Config) and enter all the keys and values
+
+2. The values should be in the corresponding column as,
      key      values      values-es       values-fr      ...
 
-4. In the tool, edit the config.properties file and enter the required details  
+3. In the tool, edit the config.properties file and enter the required details  
 
-5. In linux change permission for generatelabels.sh :  chmod 755 generatelabels.sh
+4. In linux change permission for generatelabels.sh :  chmod 755 generatelabels.sh
 
-6. Double click the .sh or .bat file based on the OS
+5. Double click the .sh or .bat file based on the OS
 
-7. Creates the strings.xml for all the given languages and place them in corresponding folders
+6. Creates the strings.xml for all the given languages and place them in corresponding folders
 
 
 ChangeLog 
