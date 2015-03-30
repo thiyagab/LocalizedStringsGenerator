@@ -1,6 +1,11 @@
 
+A strings.xml generator for multiple languages from a single google spreadsheet.  
+
+It is easy to share this sheet with the translators get the translation, then with single click the translated strings.xml file for all languages will be ready.
 
 Reads the label strings (key/value pair) for different languages from a Google Spreadsheet and generate corresponding strings.xml
+
+Steps to follow,
 
 1. Create a Google spreadsheet (e.g. Label Config) and enter all the keys and values
 
