@@ -4,7 +4,7 @@ Reads the label strings (key/value pair) for different languages from a Google S
 
 1. Create a Google spreadsheet (e.g. Label Config) and enter all the keys and values
 
-2. The values should be in the corresponding column as,
+2. The values should be in the respective columns as,
      key      values      values-es       values-fr      ...
 
 3. In the tool, edit the config.properties file and enter the required details  
@@ -13,7 +13,7 @@ Reads the label strings (key/value pair) for different languages from a Google S
 
 5. Double click the .sh or .bat file based on the OS
 
-6. Creates the strings.xml for all the given languages and place them in corresponding folders
+6. Creates the strings.xml for all the given languages and places them in respective folders
 
 
 ChangeLog 
